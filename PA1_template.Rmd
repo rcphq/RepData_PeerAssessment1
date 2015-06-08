@@ -1,25 +1,102 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Reproducible Research Project 1 - Active Monitoring Data"
+author: "Ruben Llibre"
+date: "Sunday, June 07, 2015"
+output: html_document
 ---
+```{r computetime, echo=FALSE}
+time <- format(Sys.time(), "%a %b %d %X %Y")
+```
+*Last updated on: `r time`*
 
+***
 
-## Loading and preprocessing the data
+#### Load libraries to be used
+```{r requisites,warning=FALSE,message=FALSE}
+require(dplyr)
+require(ggplot2)
+```
 
+### Loading and preprocessing the data
 
+**1. Load the data (i.e. read.csv())**
 
-## What is mean total number of steps taken per day?
+```{r loaddata}
+df <- read.csv("activity.csv")
+head(df)
+str(df)
+```
 
+**2. Process/transform the data (if necessary) into a format suitable for your analysis**
 
++ Make dates from factor into proper date format
+```{r transformData}
+df$date <- as.Date(df$date)
+str(df)
+```
 
-## What is the average daily activity pattern?
+***
+### What is mean total number of steps taken per day?
 
+For this part of the assignment, i'm **ignoring the missing values** in the dataset.
 
+**1. Calculate the total number of steps taken per day**
 
-## Imputing missing values
++ group data by date
+```{r groupDate}
+df_bydate <- group_by(df,date)
+steps_by_date <- summarise(df_bydate, total_steps = sum(steps,na.rm=T))
+head(steps_by_date)
+```
 
+**2. Make a histogram of the total number of steps taken each day**
 
+```{r plotTSteps}
+qplot(total_steps, data=steps_by_date, geom="histogram",binwidth=1000,
+      fill=I("orange"),col=I("red"),alpha=I(.3),
+      main="Total steps per day",xlab="Total steps per day")
+```
 
-## Are there differences in activity patterns between weekdays and weekends?
+**3. Calculate and report the mean and median of the total number of steps taken per day**
+
++ Calculating a Dataframe with a per-day mean/median
+```{r}
+steps_by_date_2 <- summarise(df_bydate, total_steps = sum(steps,na.rm=T), median=median(steps,na.rm=T),mean=mean(steps,na.rm=T))
+head(steps_by_date_2)
+```
++ Calculating totalized mean/median
+```{r}
+mean(steps_by_date_2$total_steps)
+median(steps_by_date_2$total_steps)
+```
+***
+
+### What is the average daily activity pattern?
+
+**1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)**
+
+**2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?**
+
+***
+
+### Imputing missing values
+
+Note that there are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.
+
+**1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)**
+
+**2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.**
+
+**3. Create a new dataset that is equal to the original dataset but with the missing data filled in.**
+
+**4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?**
+
+***
+
+### Are there differences in activity patterns between weekdays and weekends?
+
+For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
+
+**1. Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.**
+
+**2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.**
