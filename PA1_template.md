@@ -1,20 +1,14 @@
----
-title: "Reproducible Research Project 1 - Active Monitoring Data"
-author: "Ruben Llibre"
-date: "Sunday, June 07, 2015"
-output: 
-  html_document:
-    keep_md: true
----
-```{r computetime, echo=FALSE}
-time <- format(Sys.time(), "%a %b %d %X %Y")
-```
-*Last updated on: `r time`*
+# Reproducible Research Project 1 - Active Monitoring Data
+Ruben Llibre  
+Sunday, June 07, 2015  
+
+*Last updated on: Mon Jun 08 00:20:11 2015*
 
 ***
 
 #### Load libraries to be used
-```{r requisites,warning=FALSE,message=FALSE}
+
+```r
 require(dplyr)
 require(ggplot2)
 ```
@@ -23,18 +17,47 @@ require(ggplot2)
 
 **1. Load the data (i.e. read.csv())**
 
-```{r loaddata}
+
+```r
 df <- read.csv("activity.csv")
 head(df)
+```
+
+```
+##   steps       date interval
+## 1    NA 2012-10-01        0
+## 2    NA 2012-10-01        5
+## 3    NA 2012-10-01       10
+## 4    NA 2012-10-01       15
+## 5    NA 2012-10-01       20
+## 6    NA 2012-10-01       25
+```
+
+```r
 str(df)
+```
+
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
+##  $ date    : Factor w/ 61 levels "2012-10-01","2012-10-02",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
 ```
 
 **2. Process/transform the data (if necessary) into a format suitable for your analysis**
 
 + Make dates from factor into proper date format
-```{r transformData}
+
+```r
 df$date <- as.Date(df$date)
 str(df)
+```
+
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
+##  $ date    : Date, format: "2012-10-01" "2012-10-01" ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
 ```
 
 ***
@@ -45,31 +68,72 @@ For this part of the assignment, i'm **ignoring the missing values** in the data
 **1. Calculate the total number of steps taken per day**
 
 + group data by date
-```{r groupDate}
+
+```r
 df_bydate <- group_by(df,date)
 steps_by_date <- summarise(df_bydate, total_steps = sum(steps,na.rm=T))
 head(steps_by_date)
 ```
 
+```
+## Source: local data frame [6 x 2]
+## 
+##         date total_steps
+## 1 2012-10-01           0
+## 2 2012-10-02         126
+## 3 2012-10-03       11352
+## 4 2012-10-04       12116
+## 5 2012-10-05       13294
+## 6 2012-10-06       15420
+```
+
 **2. Make a histogram of the total number of steps taken each day**
 
-```{r plotTSteps}
+
+```r
 qplot(total_steps, data=steps_by_date, geom="histogram",binwidth=1000,
       fill=I("orange"),col=I("red"),alpha=I(.3),
       main="Total steps per day",xlab="Total steps per day")
 ```
 
+![](PA1_template_files/figure-html/plotTSteps-1.png) 
+
 **3. Calculate and report the mean and median of the total number of steps taken per day**
 
 + Calculating a Dataframe with a per-day mean/median
-```{r}
+
+```r
 steps_by_date_2 <- summarise(df_bydate, total_steps = sum(steps,na.rm=T), median=median(steps,na.rm=T),mean=mean(steps,na.rm=T))
 head(steps_by_date_2)
 ```
+
+```
+## Source: local data frame [6 x 4]
+## 
+##         date total_steps median     mean
+## 1 2012-10-01           0     NA       NA
+## 2 2012-10-02         126      0  0.43750
+## 3 2012-10-03       11352      0 39.41667
+## 4 2012-10-04       12116      0 42.06944
+## 5 2012-10-05       13294      0 46.15972
+## 6 2012-10-06       15420      0 53.54167
+```
 + Calculating totalized mean/median
-```{r}
+
+```r
 mean(steps_by_date_2$total_steps)
+```
+
+```
+## [1] 9354.23
+```
+
+```r
 median(steps_by_date_2$total_steps)
+```
+
+```
+## [1] 10395
 ```
 ***
 
@@ -77,15 +141,15 @@ median(steps_by_date_2$total_steps)
 
 **1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)**
 
-```{r}
+
+```r
 df_byinterval <- group_by(df,interval)
 df_byinterval_summary <- summarise(df_byinterval, 
   steps_for_interval = mean(steps,na.rm=T))
 qplot(interval,steps_for_interval, data=df_byinterval_summary, geom="line")
 ```
 
-# FIX!!
-
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
 **2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?**
 
 ***

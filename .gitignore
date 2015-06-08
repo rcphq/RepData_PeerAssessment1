@@ -2,3 +2,4 @@ activity.csv
 *.md NEED TO BE SUUBMITTED
 PA1_template.Rmd.old
 rmarkdown-cheatsheet.pdf
+*.Rhistory
