@@ -2,18 +2,21 @@
 Ruben Llibre  
 Sunday, June 07, 2015  
 
-*Last updated on: Mon Jun 08 00:20:11 2015*
+*Last updated on: Wed Jun 10 00:45:05 2015*
 
 ***
+
+
+
+### Loading and preprocessing the data
 
 #### Load libraries to be used
 
 ```r
 require(dplyr)
 require(ggplot2)
+require(xtable)
 ```
-
-### Loading and preprocessing the data
 
 **1. Load the data (i.e. read.csv())**
 
@@ -91,7 +94,7 @@ head(steps_by_date)
 
 
 ```r
-qplot(total_steps, data=steps_by_date, geom="histogram",binwidth=1000,
+qplot(total_steps, data=steps_by_date, geom="histogram",binwidth=2000,
       fill=I("orange"),col=I("red"),alpha=I(.3),
       main="Total steps per day",xlab="Total steps per day")
 ```
@@ -100,7 +103,8 @@ qplot(total_steps, data=steps_by_date, geom="histogram",binwidth=1000,
 
 **3. Calculate and report the mean and median of the total number of steps taken per day**
 
-+ Calculating a Dataframe with a per-day mean/median
++ Calculating a Dataframe with a per-day mean/median (in case you want it)
+
 
 ```r
 steps_by_date_2 <- summarise(df_bydate, total_steps = sum(steps,na.rm=T), median=median(steps,na.rm=T),mean=mean(steps,na.rm=T))
@@ -118,10 +122,11 @@ head(steps_by_date_2)
 ## 5 2012-10-05       13294      0 46.15972
 ## 6 2012-10-06       15420      0 53.54167
 ```
-+ Calculating totalized mean/median
++ Calculating totalized mean/median for all days
+
 
 ```r
-mean(steps_by_date_2$total_steps)
+mean(steps_by_date$total_steps)
 ```
 
 ```
@@ -129,7 +134,7 @@ mean(steps_by_date_2$total_steps)
 ```
 
 ```r
-median(steps_by_date_2$total_steps)
+median(steps_by_date$total_steps)
 ```
 
 ```
@@ -145,12 +150,26 @@ median(steps_by_date_2$total_steps)
 ```r
 df_byinterval <- group_by(df,interval)
 df_byinterval_summary <- summarise(df_byinterval, 
-  steps_for_interval = mean(steps,na.rm=T))
-qplot(interval,steps_for_interval, data=df_byinterval_summary, geom="line")
+  steps = mean(steps,na.rm=T))
+qplot(interval,steps, data=df_byinterval_summary, geom="line",
+      xlab="Interval (5min steps)")
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+
 **2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?**
+
+
+```r
+df_byinterval_summary[df_byinterval_summary$steps==max(df_byinterval_summary$steps), ]
+```
+
+```
+## Source: local data frame [1 x 2]
+## 
+##   interval    steps
+## 1      835 206.1698
+```
 
 ***
 
@@ -160,9 +179,39 @@ Note that there are a number of days/intervals where there are missing values (c
 
 **1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)**
 
+
+```r
+#calculate NAs found per column
+apply(df,2,function(x) { length( which( is.na(x) ) ) } )
+```
+
+```
+##    steps     date interval 
+##     2304        0        0
+```
+
+```r
+#double check out steps values, since it's the one we care for
+length(which(is.na(df$steps)))
+```
+
+```
+## [1] 2304
+```
+
 **2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.**
 
++ using the mean for the day as a fill-in strategy
+
 **3. Create a new dataset that is equal to the original dataset but with the missing data filled in.**
+
+#read this
+[sO](https://stackoverflow.com/questions/7279089/replace-all-na-with-false-in-selected-columns-in-r)
+
+```r
+#copy original data
+df_filledin <- df
+```
 
 **4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?**
 
