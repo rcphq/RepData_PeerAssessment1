@@ -2,7 +2,7 @@
 Ruben Llibre  
 Sunday, June 07, 2015  
 
-*Last updated on: Thu Jun 11 01:26:46 2015*
+*Last updated on: Thu Jun 11 22:18:00 2015*
 
 ***
 
@@ -15,36 +15,25 @@ Sunday, June 07, 2015
 ```r
 require(dplyr)
 require(ggplot2)
-require(lubridate) #for wday mainly
 ```
 
 **1. Load the data (i.e. read.csv())**
 
 
 ```r
-df <- read.csv("activity.csv")
-head(df)
+df <- read.csv("activity.csv", colClasses = c("integer","Date","integer"))
+summary(df)
 ```
 
 ```
-##   steps       date interval
-## 1    NA 2012-10-01        0
-## 2    NA 2012-10-01        5
-## 3    NA 2012-10-01       10
-## 4    NA 2012-10-01       15
-## 5    NA 2012-10-01       20
-## 6    NA 2012-10-01       25
-```
-
-```r
-str(df)
-```
-
-```
-## 'data.frame':	17568 obs. of  3 variables:
-##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
-##  $ date    : Factor w/ 61 levels "2012-10-01","2012-10-02",..: 1 1 1 1 1 1 1 1 1 1 ...
-##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
+##      steps             date               interval     
+##  Min.   :  0.00   Min.   :2012-10-01   Min.   :   0.0  
+##  1st Qu.:  0.00   1st Qu.:2012-10-16   1st Qu.: 588.8  
+##  Median :  0.00   Median :2012-10-31   Median :1177.5  
+##  Mean   : 37.38   Mean   :2012-10-31   Mean   :1177.5  
+##  3rd Qu.: 12.00   3rd Qu.:2012-11-15   3rd Qu.:1766.2  
+##  Max.   :806.00   Max.   :2012-11-30   Max.   :2355.0  
+##  NA's   :2304
 ```
 
 **2. Process/transform the data (if necessary) into a format suitable for your analysis**
@@ -70,7 +59,7 @@ For this part of the assignment, i'm **ignoring the missing values** in the data
 
 **1. Calculate the total number of steps taken per day**
 
-+ group data by date
+group data by date, then look for total mean number of steps taken per day
 
 ```r
 df_bydate <- group_by(df,date)
@@ -88,6 +77,15 @@ head(steps_by_date)
 ## 4 2012-10-04       12116
 ## 5 2012-10-05       13294
 ## 6 2012-10-06       15420
+```
+
+```r
+total_mean=mean(steps_by_date$total_steps)
+total_mean
+```
+
+```
+## [1] 9354.23
 ```
 
 **2. Make a histogram of the total number of steps taken each day**
@@ -157,19 +155,26 @@ df_byinterval <- group_by(df,interval)
 df_byinterval_summary <- summarise(df_byinterval, 
   steps = mean(steps,na.rm=T))
 qplot(interval,steps, data=df_byinterval_summary, geom="line",
-      xlab="Interval (5min steps)",)
+      xlab="Interval (5min Increments)")
 ```
 
 ![](PA1_template_files/figure-html/timeseries-1.png) 
 
-#pending
 **2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?**
 
 
 ```r
-df_byinterval <- group_by(df,interval)
-df_byinterval_summary <- summarise(df_byinterval, 
-  steps = mean(steps,na.rm=T))
+#find interval with steps = max steps
+interval_max_steps <- which(
+  df_byinterval_summary$steps==max(df_byinterval_summary$steps))
+max_interval <- df_byinterval_summary$interval[interval_max_steps]
+max_steps <- max(df_byinterval_summary$steps)
+print(paste0( "max interval is: ",max_interval, " averaging ",max_steps, 
+              " across all days in dataset."  ))
+```
+
+```
+## [1] "max interval is: 835 averaging 206.169811320755 across all days in dataset."
 ```
 
 ***
@@ -209,7 +214,7 @@ Using the interval-mean across all days as a fill-in strategy.
 #copy original data
 df_filledin <- df
 for (i in 1:nrow(df_filledin)) { 
-  #if row
+  #if rows teps contains NA, fix!
   if( is.na(df_filledin[i,]$steps)  ) { 
     iInterval <-df_filledin[i, ]$interval #interval we want mean for
     df_filledin[i, ]$steps <- 
@@ -276,15 +281,32 @@ Using the dataset with the filled-in missing values for this part.
 
 
 ```r
-day <- factor(weekdays(df_filledin$date) %in% c("Saturday","Sunday"), 
+dayf <- factor(weekdays(df_filledin$date) %in% c("Saturday","Sunday"), 
           labels=c("weekday","weekend"), ordered=FALSE)
-df_filledin$day <- day
-#re group, re graph
-qplot(interval,steps, data=df_filledin, geom="line",
-      xlab="Interval (5min steps)",
+df_filledin$day <- dayf
+head(df_filledin)
+```
+
+```
+##       steps       date interval     day
+## 1 1.7169811 2012-10-01        0 weekday
+## 2 0.3396226 2012-10-01        5 weekday
+## 3 0.1320755 2012-10-01       10 weekday
+## 4 0.1509434 2012-10-01       15 weekday
+## 5 0.0754717 2012-10-01       20 weekday
+## 6 2.0943396 2012-10-01       25 weekday
+```
+
+**2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).**
+
+
+```r
+df_filledin_byintervalday <- group_by(df_filledin,interval,day)
+steps_filledin_by_intervalday <- summarise(df_filledin_byintervalday, 
+  steps = sum(steps,na.rm=T))
+qplot(interval,steps, data=steps_filledin_by_intervalday, geom="line",
+      xlab="Interval (5min Increments)",main="Daily activity pattern",
       facets=day~.)
 ```
 
-![](PA1_template_files/figure-html/weekdayfunc-1.png) 
-
-**2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).**
+![](PA1_template_files/figure-html/weekdayplot-1.png) 
